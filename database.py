@@ -8,6 +8,9 @@ from datetime import datetime, timedelta
 DATABASE_URL = os.environ.get('DATABASE_URL')  # PostgreSQL connection string from Streamlit secrets
 USE_POSTGRES = DATABASE_URL is not None
 
+# Track if database has been initialized
+_db_initialized = False
+
 if USE_POSTGRES:
     # PostgreSQL setup
     import psycopg2
@@ -59,56 +62,68 @@ def migrate_db():
 
 def init_db():
     """Initialize database with required schema"""
-    if USE_POSTGRES:
-        # PostgreSQL initialization
-        conn = get_connection()
-        cursor = conn.cursor()
+    global _db_initialized
+    
+    if _db_initialized:
+        return  # Already initialized
+    
+    try:
+        if USE_POSTGRES:
+            # PostgreSQL initialization
+            conn = get_connection()
+            cursor = conn.cursor()
+            
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS items(
+                id SERIAL PRIMARY KEY,
+                title TEXT NOT NULL,
+                item_type TEXT NOT NULL,
+                status TEXT NOT NULL,
+                assigned_to TEXT,
+                priority TEXT,
+                budget REAL,
+                purchase_link TEXT,
+                notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                completed_at TIMESTAMP
+            )
+            """)
+            conn.commit()
+            cursor.close()
+            conn.close()
+        else:
+            # SQLite initialization
+            cursor = conn.cursor()
+            cursor.execute("""
+            CREATE TABLE IF NOT EXISTS items(
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                title TEXT NOT NULL,
+                item_type TEXT NOT NULL,
+                status TEXT NOT NULL,
+                assigned_to TEXT,
+                priority TEXT,
+                budget REAL,
+                purchase_link TEXT,
+                notes TEXT,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                completed_at TIMESTAMP
+            )
+            """)
+            conn.commit()
+            
+            # Run migration for existing databases
+            migrate_db()
         
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS items(
-            id SERIAL PRIMARY KEY,
-            title TEXT NOT NULL,
-            item_type TEXT NOT NULL,
-            status TEXT NOT NULL,
-            assigned_to TEXT,
-            priority TEXT,
-            budget REAL,
-            purchase_link TEXT,
-            notes TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            completed_at TIMESTAMP
-        )
-        """)
-        conn.commit()
-        cursor.close()
-        conn.close()
-    else:
-        # SQLite initialization
-        cursor = conn.cursor()
-        cursor.execute("""
-        CREATE TABLE IF NOT EXISTS items(
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            title TEXT NOT NULL,
-            item_type TEXT NOT NULL,
-            status TEXT NOT NULL,
-            assigned_to TEXT,
-            priority TEXT,
-            budget REAL,
-            purchase_link TEXT,
-            notes TEXT,
-            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-            completed_at TIMESTAMP
-        )
-        """)
-        conn.commit()
-        
-        # Run migration for existing databases
-        migrate_db()
+        _db_initialized = True
+    except Exception as e:
+        print(f"Warning: Could not initialize database: {e}")
+        # Don't crash - let operations fail individually with better error messages
 
 
 def create_item(title, item_type, status, assigned_to=None, priority=None, 
                 budget=None, purchase_link=None, notes=None):
     """Create a new item in the database"""
+    ensure_db_initialized()
     created_at = datetime.now().isoformat()
     
     connection = get_connection()
@@ -139,6 +154,7 @@ def create_item(title, item_type, status, assigned_to=None, priority=None,
 
 def get_all_items():
     """Get all items from database"""
+    ensure_db_initialized()
     connection = get_connection()
     cursor = connection.cursor()
     
@@ -157,6 +173,7 @@ def get_all_items():
 
 def get_items_by_type(item_type, exclude_archived=True):
     """Get items filtered by type"""
+    ensure_db_initialized()
     connection = get_connection()
     cursor = connection.cursor()
     
@@ -350,6 +367,7 @@ def archive_old_completed_items(days=30):
 
 def get_dashboard_metrics():
     """Get metrics for dashboard"""
+    ensure_db_initialized()
     metrics = {}
     
     connection = get_connection()
@@ -475,5 +493,11 @@ def get_archived_items(item_type=None):
         return items
 
 
-# Initialize database on module import
-init_db()
+def ensure_db_initialized():
+    """Ensure database is initialized before operations"""
+    if not _db_initialized:
+        init_db()
+
+
+# Don't initialize at import time - do it lazily on first operation
+# This prevents crashes when DATABASE_URL is not yet available
