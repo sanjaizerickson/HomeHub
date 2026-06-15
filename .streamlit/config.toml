@@ -1,0 +1,11 @@
+[server]
+headless = true
+
+[client]
+showSidebarNavigation = true
+
+[runner]
+fastReruns = true
+
+[browser]
+gatherUsageStats = false
