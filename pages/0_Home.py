@@ -5,7 +5,7 @@ from theme import get_page_style, add_pwa_support
 from auth import require_auth, render_logout_button
 
 st.set_page_config(
-    page_title="Home Hub",
+    page_title="Home Hub - Dashboard",
     page_icon="🏠",
     layout="wide",
     initial_sidebar_state="expanded"

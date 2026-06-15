@@ -3,9 +3,10 @@ from auth import login, is_authenticated
 from theme import get_page_style, add_pwa_support
 
 st.set_page_config(
-    page_title="Login - Home Hub",
+    page_title="Home Hub - Login",
     page_icon="🏠",
-    layout="centered"
+    layout="centered",
+    initial_sidebar_state="collapsed"
 )
 
 # Add PWA support

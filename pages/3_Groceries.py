@@ -4,7 +4,7 @@ from datetime import datetime
 from theme import render_page_header, add_pwa_support
 from auth import require_auth, render_logout_button
 
-st.set_page_config(page_title="Groceries", page_icon="🥗", layout="wide")
+st.set_page_config(page_title="Home Hub - Groceries", page_icon="🥗", layout="wide")
 
 # Add PWA support
 add_pwa_support()
