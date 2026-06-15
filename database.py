@@ -5,8 +5,14 @@ import os
 from datetime import datetime, timedelta
 
 # Determine which database to use
-DATABASE_URL = os.environ.get('DATABASE_URL')  # PostgreSQL connection string from Streamlit secrets
-USE_POSTGRES = DATABASE_URL is not None
+# Try Streamlit secrets first, then fall back to environment variable
+try:
+    import streamlit as st
+    DATABASE_URL = st.secrets.get("DATABASE_URL", None)
+except:
+    DATABASE_URL = os.environ.get('DATABASE_URL')
+
+USE_POSTGRES = DATABASE_URL is not None and DATABASE_URL != ""
 
 # Track if database has been initialized
 _db_initialized = False
