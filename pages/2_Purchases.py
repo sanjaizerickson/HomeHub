@@ -117,10 +117,13 @@ else:
                     st.write(f"**Budget:** ₹{purchase['budget']:.2f}")
             
             with col2:
-                created = datetime.fromisoformat(purchase['created_at']).strftime("%b %d, %Y")
+                # Handle both datetime object (PostgreSQL) and string (SQLite)
+                created_at = purchase['created_at']
+                created = created_at.strftime("%b %d, %Y") if not isinstance(created_at, str) else datetime.fromisoformat(created_at).strftime("%b %d, %Y")
                 st.write(f"**Added:** {created}")
                 if purchase['completed_at']:
-                    completed = datetime.fromisoformat(purchase['completed_at']).strftime("%b %d, %Y")
+                    comp_at = purchase['completed_at']
+                    completed = comp_at.strftime("%b %d, %Y") if not isinstance(comp_at, str) else datetime.fromisoformat(comp_at).strftime("%b %d, %Y")
                     st.write(f"**Completed:** {completed}")
             
             if purchase['purchase_link']:

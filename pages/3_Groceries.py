@@ -73,7 +73,9 @@ else:
             
             with col1:
                 st.write(f"**{grocery['title']}**")
-                created = datetime.fromisoformat(grocery['created_at']).strftime("%b %d, %Y")
+                # Handle both datetime object (PostgreSQL) and string (SQLite)
+                created_at = grocery['created_at']
+                created = created_at.strftime("%b %d, %Y") if not isinstance(created_at, str) else datetime.fromisoformat(created_at).strftime("%b %d, %Y")
                 st.caption(f"Added: {created}")
             
             with col2:
@@ -97,7 +99,8 @@ else:
                 with col1:
                     st.write(f"~~{grocery['title']}~~")
                     if grocery['completed_at']:
-                        completed_date = datetime.fromisoformat(grocery['completed_at']).strftime("%b %d, %Y")
+                        comp_at = grocery['completed_at']
+                        completed_date = comp_at.strftime("%b %d, %Y") if not isinstance(comp_at, str) else datetime.fromisoformat(comp_at).strftime("%b %d, %Y")
                         st.caption(f"Completed: {completed_date}")
                 
                 with col2:

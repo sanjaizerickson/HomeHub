@@ -69,7 +69,12 @@ if recent:
             'GROCERY': '🥗'
         }.get(item['item_type'], '📌')
         
-        completed_date = datetime.fromisoformat(item['completed_at']).strftime("%b %d, %Y") if item['completed_at'] else "N/A"
+        # Handle both datetime object (PostgreSQL) and string (SQLite)
+        if item['completed_at']:
+            comp_at = item['completed_at']
+            completed_date = comp_at.strftime("%b %d, %Y") if not isinstance(comp_at, str) else datetime.fromisoformat(comp_at).strftime("%b %d, %Y")
+        else:
+            completed_date = "N/A"
         
         with st.expander(f"{item_type_emoji} {item['title']} - {completed_date}"):
             col1, col2 = st.columns(2)

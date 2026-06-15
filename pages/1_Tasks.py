@@ -89,12 +89,21 @@ else:
             
             with col2:
                 st.write(f"**Status:** {task['status']}")
-                created = datetime.fromisoformat(task['created_at']).strftime("%b %d, %Y %I:%M %p")
+                # Handle both string (SQLite) and datetime (PostgreSQL)
+                created_at = task['created_at']
+                if isinstance(created_at, str):
+                    created = datetime.fromisoformat(created_at).strftime("%b %d, %Y %I:%M %p")
+                else:
+                    created = created_at.strftime("%b %d, %Y %I:%M %p")
                 st.write(f"**Created:** {created}")
             
             with col3:
                 if task['completed_at']:
-                    completed = datetime.fromisoformat(task['completed_at']).strftime("%b %d, %Y %I:%M %p")
+                    completed_at = task['completed_at']
+                    if isinstance(completed_at, str):
+                        completed = datetime.fromisoformat(completed_at).strftime("%b %d, %Y %I:%M %p")
+                    else:
+                        completed = completed_at.strftime("%b %d, %Y %I:%M %p")
                     st.write(f"**Completed:** {completed}")
             
             if task['notes']:
