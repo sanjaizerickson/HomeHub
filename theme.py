@@ -1,6 +1,23 @@
 """
 Theme and styling configuration for Home Hub
 """
+import streamlit as st
+
+# Theme presets
+THEMES = {
+    'dark': {
+        'background': '#0e1117',
+        'secondary_bg': '#262730',
+        'text': '#fafafa',
+        'card_bg': '#1e1e1e'
+    },
+    'light': {
+        'background': '#ffffff',
+        'secondary_bg': '#f0f2f6',
+        'text': '#262730',
+        'card_bg': '#ffffff'
+    }
+}
 
 # Color scheme for each page
 COLORS = {
@@ -35,6 +52,73 @@ COLORS = {
         'text': '#ffffff'
     }
 }
+
+def apply_theme_switcher():
+    """Add theme switcher to sidebar and return current theme"""
+    with st.sidebar:
+        st.markdown("---")
+        theme_choice = st.radio(
+            "🎨 Theme",
+            options=["System Default", "Dark", "Light"],
+            index=0,
+            key="theme_preference",
+            horizontal=False
+        )
+        
+        # Determine active theme
+        if theme_choice == "Dark":
+            return 'dark'
+        elif theme_choice == "Light":
+            return 'light'
+        else:
+            # System default - check browser preference
+            return 'system'
+
+
+def get_theme_css(theme_mode):
+    """Generate CSS for theme override"""
+    if theme_mode == 'system':
+        # Use CSS media query for system preference
+        return """
+        <style>
+            @media (prefers-color-scheme: dark) {
+                :root, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
+                    background-color: #0e1117 !important;
+                    color: #fafafa !important;
+                }
+                [data-testid="stSidebar"] {
+                    background-color: #262730 !important;
+                }
+            }
+            @media (prefers-color-scheme: light) {
+                :root, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {
+                    background-color: #ffffff !important;
+                    color: #262730 !important;
+                }
+                [data-testid="stSidebar"] {
+                    background-color: #f0f2f6 !important;
+                }
+            }
+        </style>
+        """
+    
+    theme = THEMES.get(theme_mode, THEMES['dark'])
+    return f"""
+    <style>
+        :root, [data-testid="stAppViewContainer"], [data-testid="stHeader"] {{
+            background-color: {theme['background']} !important;
+            color: {theme['text']} !important;
+        }}
+        [data-testid="stSidebar"] {{
+            background-color: {theme['secondary_bg']} !important;
+        }}
+        .stTextInput > div > div, .stSelectbox > div > div, .stTextArea > div > div {{
+            background-color: {theme['card_bg']} !important;
+            color: {theme['text']} !important;
+        }}
+    </style>
+    """
+
 
 def get_page_style(page_name, mobile_optimized=True):
     """Generate custom CSS for a specific page"""
@@ -159,9 +243,15 @@ def get_page_style(page_name, mobile_optimized=True):
 
 def render_page_header(title, icon, page_name):
     """Render a styled page header"""
-    import streamlit as st
+    # Apply theme switcher and get current theme
+    current_theme = apply_theme_switcher()
     
+    # Apply theme CSS
+    st.markdown(get_theme_css(current_theme), unsafe_allow_html=True)
+    
+    # Apply page-specific styling
     st.markdown(get_page_style(page_name), unsafe_allow_html=True)
+    
     st.markdown(f"""
         <div class="main-header">
             <h1>{icon} {title}</h1>
