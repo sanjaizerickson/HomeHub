@@ -2,7 +2,14 @@
 Database module with PostgreSQL support for production and SQLite for local dev
 """
 import os
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+
+# IST timezone (UTC+5:30)
+IST = timezone(timedelta(hours=5, minutes=30))
+
+def get_ist_now():
+    """Get current time in IST"""
+    return datetime.now(IST)
 
 # Determine which database to use
 # Try Streamlit secrets first, then fall back to environment variable
@@ -130,7 +137,7 @@ def create_item(title, item_type, status, assigned_to=None, priority=None,
                 budget=None, purchase_link=None, notes=None):
     """Create a new item in the database"""
     ensure_db_initialized()
-    created_at = datetime.now().isoformat()
+    created_at = get_ist_now().isoformat()
     
     connection = get_connection()
     cursor = connection.cursor()
@@ -244,7 +251,7 @@ def get_item_counts():
 
 def update_item_status(item_id, status):
     """Update item status and set completed_at if status is COMPLETED"""
-    completed_at = datetime.now().isoformat() if status == 'COMPLETED' else None
+    completed_at = get_ist_now().isoformat() if status == 'COMPLETED' else None
     
     connection = get_connection()
     cursor = connection.cursor()
