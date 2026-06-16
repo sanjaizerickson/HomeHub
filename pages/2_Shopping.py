@@ -61,6 +61,7 @@ st.markdown("""
         background: rgba(255, 255, 255, 0.1);
         margin: 0 0.5rem;
         position: relative;
+        display: inline-block;
     }
     
     .progress-line.active {
@@ -216,8 +217,8 @@ else:
                 current_index = 0
                 current_stage = status_stages[0]
             
-            # Build horizontal progress bar
-            progress_html = '<div class="progress-bar-horizontal">'
+            # Build horizontal progress bar (avoid nested divs)
+            progress_dots = []
             for i, stage in enumerate(status_stages):
                 # Determine dot class
                 dot_class = 'progress-dot'
@@ -226,16 +227,16 @@ else:
                 elif i == current_index:
                     dot_class += ' active'
                 
-                progress_html += f'<span class="{dot_class}">{stage_emojis[stage]}</span>'
+                progress_dots.append(f'<span class="{dot_class}">{stage_emojis[stage]}</span>')
                 
                 # Add connecting line (except after last dot)
                 if i < len(status_stages) - 1:
                     line_class = 'progress-line'
                     if i < current_index:
                         line_class += ' active'
-                    progress_html += f'<div class="{line_class}"></div>'
+                    progress_dots.append(f'<span class="{line_class}"></span>')
             
-            progress_html += '</div>'
+            progress_html = '<div class="progress-bar-horizontal">' + ''.join(progress_dots) + '</div>'
             
             # Card container
             with st.container():
