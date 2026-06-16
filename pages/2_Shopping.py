@@ -165,8 +165,8 @@ else:
     if priority_filter != "All":
         filtered_purchases = [p for p in filtered_purchases if p['priority'] == priority_filter]
     
-    # Summary metrics
-    col1, col2, col3, col4 = st.columns(4)
+    # Summary metrics - All 4 stages
+    col1, col2, col3, col4, col5 = st.columns(5)
     with col1:
         st.metric("Total", len(filtered_purchases))
     with col2:
@@ -178,6 +178,9 @@ else:
     with col4:
         ordered_count = len([p for p in filtered_purchases if p['status'] == 'ORDERED'])
         st.metric("📦 Ordered", ordered_count)
+    with col5:
+        delivered_count = len([p for p in filtered_purchases if p['status'] == 'DELIVERED'])
+        st.metric("✅ Delivered", delivered_count)
     
     st.divider()
     

@@ -141,10 +141,12 @@ else:
     completed = [g for g in groceries if g['status'] == 'COMPLETED']
     
     # Metrics
-    col1, col2 = st.columns(2)
+    col1, col2, col3 = st.columns(3)
     with col1:
-        st.metric("📝 Pending", len(pending))
+        st.metric("Total", len(groceries))
     with col2:
+        st.metric("📝 Pending", len(pending))
+    with col3:
         st.metric("✅ Completed", len(completed))
     
     st.divider()
@@ -154,7 +156,7 @@ else:
         st.markdown("### 📝 Shopping List")
         
         for grocery in pending:
-            col1, col2, col3 = st.columns([0.5, 4, 1])
+            col1, col2, col3 = st.columns([0.6, 6, 0.6])
             
             with col1:
                 # Checkbox style complete button
@@ -163,14 +165,10 @@ else:
                     st.rerun()
             
             with col2:
+                # Single line display - item name only
                 st.markdown(f"""
-                <div style="padding-top: 0.5rem;">
-                    <strong style="font-size: 1.15rem; font-weight: 600;">{grocery['title']}</strong>
-                    <br>
-                    <span style="font-size: 0.75rem; color: #6b7280;">Added: {
-                        grocery['created_at'].strftime("%b %d, %I:%M %p") if not isinstance(grocery['created_at'], str) 
-                        else datetime.fromisoformat(grocery['created_at']).strftime("%b %d, %I:%M %p")
-                    }</span>
+                <div style="padding-top: 0.4rem;">
+                    <strong style="font-size: 1.05rem; font-weight: 500;">{grocery['title']}</strong>
                 </div>
                 """, unsafe_allow_html=True)
             
@@ -186,7 +184,7 @@ else:
         st.markdown("---")
         with st.expander(f"✅ Recently Completed ({len(completed)})", expanded=False):
             for grocery in completed[:20]:  # Show last 20 completed
-                col1, col2, col3 = st.columns([0.5, 4, 1])
+                col1, col2, col3 = st.columns([0.6, 6, 0.6])
                 
                 with col1:
                     # Checked checkbox style undo button
@@ -195,13 +193,10 @@ else:
                         st.rerun()
                 
                 with col2:
-                    completed_at = grocery['completed_at']
-                    completed_date = completed_at.strftime("%b %d, %I:%M %p") if not isinstance(completed_at, str) else datetime.fromisoformat(completed_at).strftime("%b %d, %I:%M %p")
+                    # Single line display - strikethrough item name
                     st.markdown(f"""
-                    <div style="padding-top: 0.5rem; opacity: 0.7;">
-                        <span style="font-size: 1.15rem; text-decoration: line-through; color: #6b7280;">{grocery['title']}</span>
-                        <br>
-                        <span style="font-size: 0.75rem; color: #6b7280;">Completed: {completed_date}</span>
+                    <div style="padding-top: 0.4rem; opacity: 0.6;">
+                        <span style="font-size: 1.05rem; text-decoration: line-through; color: #6b7280;">{grocery['title']}</span>
                     </div>
                     """, unsafe_allow_html=True)
                 
