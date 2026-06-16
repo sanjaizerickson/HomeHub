@@ -21,78 +21,23 @@ st.markdown(get_page_style('groceries'), unsafe_allow_html=True)
 # Custom CSS for enhanced UI
 st.markdown("""
 <style>
-    /* Grocery Item Styling */
-    .grocery-item {
-        background: rgba(255, 255, 255, 0.05);
-        border-left: 4px solid #10b981;
-        padding: 1rem 1.5rem;
-        border-radius: 12px;
-        margin-bottom: 0.75rem;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        transition: all 0.2s;
+    /* Grocery Card Styling */
+    .grocery-card:hover {
+        background: rgba(16, 185, 129, 0.12) !important;
+        transform: translateX(2px);
     }
     
-    .grocery-item:hover {
-        background: rgba(255, 255, 255, 0.08);
-        transform: translateX(4px);
+    .grocery-card-completed:hover {
+        background: rgba(107, 114, 128, 0.12) !important;
+        transform: translateX(2px);
     }
     
-    .grocery-item.completed {
-        border-left-color: #6b7280;
-        opacity: 0.7;
-    }
-    
-    .grocery-checkbox {
-        width: 24px;
-        height: 24px;
-        border-radius: 6px;
-        border: 2px solid #10b981;
-        background: transparent;
-        cursor: pointer;
-        margin-right: 1rem;
-    }
-    
-    .grocery-checkbox.checked {
-        background: #10b981;
-    }
-    
-    .grocery-title {
-        flex: 1;
-        font-size: 1rem;
-        font-weight: 500;
-    }
-    
-    .grocery-title.completed {
-        text-decoration: line-through;
-        color: #6b7280;
-    }
-    
-    /* Category Headers */
-    .category-header {
-        background: linear-gradient(90deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0) 100%);
-        padding: 0.75rem 1rem;
-        border-radius: 8px;
-        margin: 1.5rem 0 1rem 0;
-        border-left: 4px solid #10b981;
-    }
-    
-    /* Quick Add Button */
-    .quick-add-btn {
-        background: rgba(16, 185, 129, 0.1);
-        border: 1px solid rgba(16, 185, 129, 0.3);
-        border-radius: 8px;
-        padding: 0.5rem;
-        text-align: center;
-        cursor: pointer;
-        transition: all 0.2s;
-    }
-    
-    .quick-add-btn:hover {
-        background: rgba(16, 185, 129, 0.2);
-        border-color: rgba(16, 185, 129, 0.5);
-        transform: translateY(-2px);
+    /* Reduce button spacing on mobile */
+    @media (max-width: 768px) {
+        .stButton button {
+            padding: 0.4rem 0.6rem;
+            font-size: 0.9rem;
+        }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -151,61 +96,88 @@ else:
     
     st.divider()
     
-    # Pending Groceries (Checkbox Style)
+    # Pending Groceries (Compact Cards)
     if pending:
-        st.markdown("### 📝 Shopping List")
-        
         for grocery in pending:
-            col1, col2, col3 = st.columns([0.6, 6, 0.6])
-            
-            with col1:
-                # Checkbox style complete button
-                if st.button("☐", key=f"check_{grocery['id']}", help="Mark as complete"):
-                    update_item_status(grocery['id'], 'COMPLETED')
-                    st.rerun()
-            
-            with col2:
-                # Single line display - item name only
-                st.markdown(f"""
-                <div style="padding-top: 0.4rem;">
-                    <strong style="font-size: 1.05rem; font-weight: 500;">{grocery['title']}</strong>
+            # Card container
+            with st.container():
+                # Build compact card with buttons inside
+                card_html = f"""
+                <div class="grocery-card" style="
+                    background: rgba(16, 185, 129, 0.08);
+                    border-left: 4px solid #10b981;
+                    border-radius: 12px;
+                    padding: 0.75rem 1rem;
+                    margin-bottom: 0.5rem;
+                    display: flex;
+                    align-items: center;
+                    justify-content: space-between;
+                    transition: all 0.2s;
+                ">
+                    <div style="flex: 1;">
+                        <span style="font-size: 1.1rem; font-weight: 500; color: #10b981;">🥗</span>
+                        <span style="font-size: 1.05rem; font-weight: 500; margin-left: 0.5rem;">{grocery['title']}</span>
+                    </div>
+                    <div style="display: flex; gap: 0.5rem; align-items: center;">
+                        <span style="font-size: 0.85rem; color: #6b7280;">TODO</span>
+                    </div>
                 </div>
-                """, unsafe_allow_html=True)
-            
-            with col3:
-                if st.button("🗑️", key=f"delete_{grocery['id']}", help="Delete item"):
-                    delete_item(grocery['id'])
-                    st.rerun()
-            
-            st.markdown("<hr style='margin: 0.5rem 0; border: none; border-top: 1px solid rgba(255,255,255,0.1);'>", unsafe_allow_html=True)
+                """
+                st.markdown(card_html, unsafe_allow_html=True)
+                
+                # Actions in columns - compact
+                col1, col2 = st.columns([1, 1])
+                with col1:
+                    if st.button("✅ Complete", key=f"complete_{grocery['id']}", use_container_width=True):
+                        update_item_status(grocery['id'], 'COMPLETED')
+                        st.rerun()
+                with col2:
+                    if st.button("🗑️ Delete", key=f"delete_{grocery['id']}", use_container_width=True):
+                        delete_item(grocery['id'])
+                        st.rerun()
     
     # Completed Groceries
     if completed:
         st.markdown("---")
         with st.expander(f"✅ Recently Completed ({len(completed)})", expanded=False):
             for grocery in completed[:20]:  # Show last 20 completed
-                col1, col2, col3 = st.columns([0.6, 6, 0.6])
-                
-                with col1:
-                    # Checked checkbox style undo button
-                    if st.button("☑", key=f"uncheck_{grocery['id']}", help="Undo completion"):
-                        update_item_status(grocery['id'], 'TODO')
-                        st.rerun()
-                
-                with col2:
-                    # Single line display - strikethrough item name
-                    st.markdown(f"""
-                    <div style="padding-top: 0.4rem; opacity: 0.6;">
-                        <span style="font-size: 1.05rem; text-decoration: line-through; color: #6b7280;">{grocery['title']}</span>
+                # Card container
+                with st.container():
+                    # Build compact card with strikethrough
+                    card_html = f"""
+                    <div class="grocery-card-completed" style="
+                        background: rgba(107, 114, 128, 0.08);
+                        border-left: 4px solid #6b7280;
+                        border-radius: 12px;
+                        padding: 0.75rem 1rem;
+                        margin-bottom: 0.5rem;
+                        display: flex;
+                        align-items: center;
+                        justify-content: space-between;
+                        opacity: 0.7;
+                        transition: all 0.2s;
+                    ">
+                        <div style="flex: 1;">
+                            <span style="font-size: 1.1rem;">✅</span>
+                            <span style="font-size: 1.05rem; margin-left: 0.5rem; text-decoration: line-through; color: #6b7280;">{grocery['title']}</span>
+                        </div>
+                        <div style="display: flex; gap: 0.5rem; align-items: center;">
+                            <span style="font-size: 0.85rem; color: #6b7280;">DONE</span>
+                        </div>
                     </div>
-                    """, unsafe_allow_html=True)
-                
-                with col3:
-                    if st.button("🗑️", key=f"delete_completed_{grocery['id']}", help="Delete item"):
-                        delete_item(grocery['id'])
-                        st.rerun()
-                
-                st.markdown("<hr style='margin: 0.5rem 0; border: none; border-top: 1px solid rgba(255,255,255,0.1);'>", unsafe_allow_html=True)
+                    """
+                    st.markdown(card_html, unsafe_allow_html=True)
+                    
+                    # Actions in columns - compact
+                    col1, col2 = st.columns([1, 1])
+                    with col1:
+                        if st.button("🔄 Undo", key=f"undo_{grocery['id']}", use_container_width=True):
+                            update_item_status(grocery['id'], 'TODO')
+                            st.rerun()
+                    with col2:
+                        if st.button("🗑️ Delete", key=f"delete_completed_{grocery['id']}", use_container_width=True):
+                            delete_item(grocery['id'])
+                            st.rerun()
 
 # Render bottom navigation
 render_bottom_navigation('groceries')
