@@ -32,11 +32,19 @@ st.markdown("""
         transform: translateX(2px);
     }
     
-    /* Reduce button spacing on mobile */
+    /* Icon-only buttons - compact */
+    div[data-testid="column"] button {
+        min-width: 40px;
+        padding: 0.5rem;
+        font-size: 1.2rem;
+    }
+    
+    /* Mobile optimization */
     @media (max-width: 768px) {
-        .stButton button {
-            padding: 0.4rem 0.6rem;
-            font-size: 0.9rem;
+        div[data-testid="column"] button {
+            min-width: 36px;
+            padding: 0.4rem;
+            font-size: 1.1rem;
         }
     }
 </style>
@@ -96,88 +104,76 @@ else:
     
     st.divider()
     
-    # Pending Groceries (Compact Cards)
+    # Pending Groceries (Super Compact - Buttons Inside Card)
     if pending:
         for grocery in pending:
-            # Card container
-            with st.container():
-                # Build compact card with buttons inside
+            # Single row with card and inline buttons
+            col_card, col_btn1, col_btn2 = st.columns([8, 1, 1])
+            
+            with col_card:
+                # Compact card with item only
                 card_html = f"""
                 <div class="grocery-card" style="
                     background: rgba(16, 185, 129, 0.08);
                     border-left: 4px solid #10b981;
                     border-radius: 12px;
                     padding: 0.75rem 1rem;
-                    margin-bottom: 0.5rem;
                     display: flex;
                     align-items: center;
-                    justify-content: space-between;
                     transition: all 0.2s;
                 ">
-                    <div style="flex: 1;">
-                        <span style="font-size: 1.1rem; font-weight: 500; color: #10b981;">🥗</span>
-                        <span style="font-size: 1.05rem; font-weight: 500; margin-left: 0.5rem;">{grocery['title']}</span>
-                    </div>
-                    <div style="display: flex; gap: 0.5rem; align-items: center;">
-                        <span style="font-size: 0.85rem; color: #6b7280;">TODO</span>
-                    </div>
+                    <span style="font-size: 1.1rem; font-weight: 500; color: #10b981;">🥗</span>
+                    <span style="font-size: 1.05rem; font-weight: 500; margin-left: 0.5rem;">{grocery['title']}</span>
                 </div>
                 """
                 st.markdown(card_html, unsafe_allow_html=True)
-                
-                # Actions in columns - compact
-                col1, col2 = st.columns([1, 1])
-                with col1:
-                    if st.button("✅ Complete", key=f"complete_{grocery['id']}", use_container_width=True):
-                        update_item_status(grocery['id'], 'COMPLETED')
-                        st.rerun()
-                with col2:
-                    if st.button("🗑️ Delete", key=f"delete_{grocery['id']}", use_container_width=True):
-                        delete_item(grocery['id'])
-                        st.rerun()
+            
+            with col_btn1:
+                if st.button("✅", key=f"complete_{grocery['id']}", help="Complete"):
+                    update_item_status(grocery['id'], 'COMPLETED')
+                    st.rerun()
+            
+            with col_btn2:
+                if st.button("🗑️", key=f"delete_{grocery['id']}", help="Delete"):
+                    delete_item(grocery['id'])
+                    st.rerun()
     
     # Completed Groceries
     if completed:
         st.markdown("---")
         with st.expander(f"✅ Recently Completed ({len(completed)})", expanded=False):
             for grocery in completed[:20]:  # Show last 20 completed
-                # Card container
-                with st.container():
-                    # Build compact card with strikethrough
+                # Single row with card and inline buttons
+                col_card, col_btn1, col_btn2 = st.columns([8, 1, 1])
+                
+                with col_card:
+                    # Compact card with strikethrough
                     card_html = f"""
                     <div class="grocery-card-completed" style="
                         background: rgba(107, 114, 128, 0.08);
                         border-left: 4px solid #6b7280;
                         border-radius: 12px;
                         padding: 0.75rem 1rem;
-                        margin-bottom: 0.5rem;
+                        opacity: 0.7;
                         display: flex;
                         align-items: center;
-                        justify-content: space-between;
-                        opacity: 0.7;
                         transition: all 0.2s;
                     ">
-                        <div style="flex: 1;">
-                            <span style="font-size: 1.1rem;">✅</span>
-                            <span style="font-size: 1.05rem; margin-left: 0.5rem; text-decoration: line-through; color: #6b7280;">{grocery['title']}</span>
-                        </div>
-                        <div style="display: flex; gap: 0.5rem; align-items: center;">
-                            <span style="font-size: 0.85rem; color: #6b7280;">DONE</span>
-                        </div>
+                        <span style="font-size: 1.1rem;">✅</span>
+                        <span style="font-size: 1.05rem; margin-left: 0.5rem; text-decoration: line-through; color: #6b7280;">{grocery['title']}</span>
                     </div>
                     """
                     st.markdown(card_html, unsafe_allow_html=True)
-                    
-                    # Actions in columns - compact
-                    col1, col2 = st.columns([1, 1])
-                    with col1:
-                        if st.button("🔄 Undo", key=f"undo_{grocery['id']}", use_container_width=True):
-                            update_item_status(grocery['id'], 'TODO')
-                            st.rerun()
-                    with col2:
-                        if st.button("🗑️ Delete", key=f"delete_completed_{grocery['id']}", use_container_width=True):
-                            delete_item(grocery['id'])
-                            st.rerun()
+                
+                with col_btn1:
+                    if st.button("🔄", key=f"undo_{grocery['id']}", help="Undo"):
+                        update_item_status(grocery['id'], 'TODO')
+                        st.rerun()
+                
+                with col_btn2:
+                    if st.button("🗑️", key=f"delete_completed_{grocery['id']}", help="Delete"):
+                        delete_item(grocery['id'])
+                        st.rerun()
 
 # Render bottom navigation
 render_bottom_navigation('groceries')
