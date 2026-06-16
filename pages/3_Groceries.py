@@ -165,7 +165,7 @@ else:
             with col2:
                 st.markdown(f"""
                 <div style="padding-top: 0.5rem;">
-                    <strong style="font-size: 1rem;">{grocery['title']}</strong>
+                    <strong style="font-size: 1.15rem; font-weight: 600;">{grocery['title']}</strong>
                     <br>
                     <span style="font-size: 0.75rem; color: #6b7280;">Added: {
                         grocery['created_at'].strftime("%b %d, %I:%M %p") if not isinstance(grocery['created_at'], str) 
@@ -199,7 +199,7 @@ else:
                     completed_date = completed_at.strftime("%b %d, %I:%M %p") if not isinstance(completed_at, str) else datetime.fromisoformat(completed_at).strftime("%b %d, %I:%M %p")
                     st.markdown(f"""
                     <div style="padding-top: 0.5rem; opacity: 0.7;">
-                        <span style="font-size: 1rem; text-decoration: line-through; color: #6b7280;">{grocery['title']}</span>
+                        <span style="font-size: 1.15rem; text-decoration: line-through; color: #6b7280;">{grocery['title']}</span>
                         <br>
                         <span style="font-size: 0.75rem; color: #6b7280;">Completed: {completed_date}</span>
                     </div>

@@ -225,10 +225,11 @@ else:
             
             # Card container
             with st.container():
-                st.markdown(f"""
+                # Build card HTML with progress bar inline
+                card_html = f"""
                 <div class="task-card">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
-                        <h4 style="margin: 0; color: #667eea; font-size: 1rem;">{task['title']}</h4>
+                        <h4 style="margin: 0; color: #667eea; font-size: 1.15rem; font-weight: 600;">{task['title']}</h4>
                         <span class="priority-badge {priority_class}">{priority_emoji}</span>
                     </div>
                     {progress_html}
@@ -236,7 +237,8 @@ else:
                         👤 {task['assigned_to']} • 📅 {task['created_at'].strftime("%b %d") if not isinstance(task['created_at'], str) else datetime.fromisoformat(task['created_at']).strftime("%b %d")}
                     </div>
                 </div>
-                """, unsafe_allow_html=True)
+                """
+                st.markdown(card_html, unsafe_allow_html=True)
                 
                 # Actions row - compact
                 col1, col2, col3 = st.columns([2, 2, 1])

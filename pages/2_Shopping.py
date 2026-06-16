@@ -239,10 +239,11 @@ else:
             
             # Card container
             with st.container():
-                st.markdown(f"""
+                # Build card HTML with progress bar inline
+                card_html = f"""
                 <div class="purchase-card">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
-                        <h4 style="margin: 0; color: #48bb78; font-size: 1rem;">{purchase['title']}</h4>
+                        <h4 style="margin: 0; color: #48bb78; font-size: 1.15rem; font-weight: 600;">{purchase['title']}</h4>
                         <span class="priority-badge {priority_class}">{priority_emoji}</span>
                     </div>
                     {progress_html}
@@ -251,7 +252,8 @@ else:
                         {' • 🔗 <a href="' + purchase['purchase_link'] + '" target="_blank" style="color: #48bb78;">Link</a>' if purchase['purchase_link'] else ''}
                     </div>
                 </div>
-                """, unsafe_allow_html=True)
+                """
+                st.markdown(card_html, unsafe_allow_html=True)
                 
                 # Actions row - compact
                 col1, col2, col3 = st.columns([2, 2, 1])
