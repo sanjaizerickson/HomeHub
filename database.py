@@ -386,113 +386,133 @@ def archive_old_completed_items(days=30):
 def get_dashboard_metrics():
     """Get metrics for dashboard"""
     ensure_db_initialized()
-    metrics = {}
     
-    connection = get_connection()
-    cursor = connection.cursor()
+    # Initialize metrics with default values
+    metrics = {
+        'tasks_completed': 0,
+        'tasks_total': 0,
+        'shopping_completed': 0,
+        'shopping_total': 0,
+        'groceries_completed': 0,
+        'groceries_total': 0,
+        'overall_completion': 0,
+        'pending_tasks': 0,
+        'tasks_in_progress': 0,
+        'pending_purchases': 0,
+        'pending_groceries': 0,
+        'completed_this_month': 0
+    }
     
-    # TASKS - Completed vs Total
-    cursor.execute("""
-        SELECT COUNT(*) as count FROM items 
-        WHERE item_type = 'TASK' AND status = 'COMPLETED'
-    """)
-    result = cursor.fetchone()
-    metrics['tasks_completed'] = result['count'] if USE_POSTGRES else result[0]
-    
-    cursor.execute("""
-        SELECT COUNT(*) as count FROM items 
-        WHERE item_type = 'TASK'
-    """)
-    result = cursor.fetchone()
-    metrics['tasks_total'] = result['count'] if USE_POSTGRES else result[0]
-    
-    # SHOPPING - Delivered vs Total
-    cursor.execute("""
-        SELECT COUNT(*) as count FROM items 
-        WHERE item_type = 'PURCHASE' AND (status = 'DELIVERED' OR status = 'COMPLETED')
-    """)
-    result = cursor.fetchone()
-    metrics['shopping_completed'] = result['count'] if USE_POSTGRES else result[0]
-    
-    cursor.execute("""
-        SELECT COUNT(*) as count FROM items 
-        WHERE item_type = 'PURCHASE'
-    """)
-    result = cursor.fetchone()
-    metrics['shopping_total'] = result['count'] if USE_POSTGRES else result[0]
-    
-    # GROCERIES - Completed vs Total
-    cursor.execute("""
-        SELECT COUNT(*) as count FROM items 
-        WHERE item_type = 'GROCERY' AND status = 'COMPLETED'
-    """)
-    result = cursor.fetchone()
-    metrics['groceries_completed'] = result['count'] if USE_POSTGRES else result[0]
-    
-    cursor.execute("""
-        SELECT COUNT(*) as count FROM items 
-        WHERE item_type = 'GROCERY'
-    """)
-    result = cursor.fetchone()
-    metrics['groceries_total'] = result['count'] if USE_POSTGRES else result[0]
-    
-    # Calculate overall completion percentage
-    total_items = metrics['tasks_total'] + metrics['shopping_total'] + metrics['groceries_total']
-    completed_items = metrics['tasks_completed'] + metrics['shopping_completed'] + metrics['groceries_completed']
-    metrics['overall_completion'] = (completed_items / total_items * 100) if total_items > 0 else 0
-    
-    # Pending tasks (TODO + IN_PROGRESS) - kept for backward compatibility
-    cursor.execute("""
-        SELECT COUNT(*) as count FROM items 
-        WHERE item_type = 'TASK' AND status IN ('TODO', 'IN_PROGRESS')
-    """)
-    result = cursor.fetchone()
-    metrics['pending_tasks'] = result['count'] if USE_POSTGRES else result[0]
-    
-    # Tasks in progress - kept for backward compatibility
-    cursor.execute("""
-        SELECT COUNT(*) as count FROM items 
-        WHERE item_type = 'TASK' AND status = 'IN_PROGRESS'
-    """)
-    result = cursor.fetchone()
-    metrics['tasks_in_progress'] = result['count'] if USE_POSTGRES else result[0]
-    
-    # Pending purchases - kept for backward compatibility
-    cursor.execute("""
-        SELECT COUNT(*) as count FROM items 
-        WHERE item_type = 'PURCHASE' AND status != 'COMPLETED' AND status != 'ARCHIVED'
-    """)
-    result = cursor.fetchone()
-    metrics['pending_purchases'] = result['count'] if USE_POSTGRES else result[0]
-    
-    # Pending groceries - kept for backward compatibility
-    cursor.execute("""
-        SELECT COUNT(*) as count FROM items 
-        WHERE item_type = 'GROCERY' AND status = 'TODO'
-    """)
-    result = cursor.fetchone()
-    metrics['pending_groceries'] = result['count'] if USE_POSTGRES else result[0]
-    
-    # Completed this month
-    first_day_of_month = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
-    
-    if USE_POSTGRES:
+    try:
+        connection = get_connection()
+        cursor = connection.cursor()
+        
+        # TASKS - Completed vs Total
         cursor.execute("""
             SELECT COUNT(*) as count FROM items 
-            WHERE status = 'COMPLETED' AND completed_at >= %s
-        """, (first_day_of_month,))
-    else:
+            WHERE item_type = 'TASK' AND status = 'COMPLETED'
+        """)
+        result = cursor.fetchone()
+        metrics['tasks_completed'] = result['count'] if USE_POSTGRES else result[0]
+        
         cursor.execute("""
             SELECT COUNT(*) as count FROM items 
-            WHERE status = 'COMPLETED' AND completed_at >= ?
-        """, (first_day_of_month,))
+            WHERE item_type = 'TASK'
+        """)
+        result = cursor.fetchone()
+        metrics['tasks_total'] = result['count'] if USE_POSTGRES else result[0]
+        
+        # SHOPPING - Delivered vs Total
+        cursor.execute("""
+            SELECT COUNT(*) as count FROM items 
+            WHERE item_type = 'PURCHASE' AND (status = 'DELIVERED' OR status = 'COMPLETED')
+        """)
+        result = cursor.fetchone()
+        metrics['shopping_completed'] = result['count'] if USE_POSTGRES else result[0]
+        
+        cursor.execute("""
+            SELECT COUNT(*) as count FROM items 
+            WHERE item_type = 'PURCHASE'
+        """)
+        result = cursor.fetchone()
+        metrics['shopping_total'] = result['count'] if USE_POSTGRES else result[0]
+        
+        # GROCERIES - Completed vs Total
+        cursor.execute("""
+            SELECT COUNT(*) as count FROM items 
+            WHERE item_type = 'GROCERY' AND status = 'COMPLETED'
+        """)
+        result = cursor.fetchone()
+        metrics['groceries_completed'] = result['count'] if USE_POSTGRES else result[0]
+        
+        cursor.execute("""
+            SELECT COUNT(*) as count FROM items 
+            WHERE item_type = 'GROCERY'
+        """)
+        result = cursor.fetchone()
+        metrics['groceries_total'] = result['count'] if USE_POSTGRES else result[0]
+        
+        # Calculate overall completion percentage
+        total_items = metrics['tasks_total'] + metrics['shopping_total'] + metrics['groceries_total']
+        completed_items = metrics['tasks_completed'] + metrics['shopping_completed'] + metrics['groceries_completed']
+        metrics['overall_completion'] = (completed_items / total_items * 100) if total_items > 0 else 0
+        
+        # Pending tasks (TODO + IN_PROGRESS) - kept for backward compatibility
+        cursor.execute("""
+            SELECT COUNT(*) as count FROM items 
+            WHERE item_type = 'TASK' AND status IN ('TODO', 'IN_PROGRESS')
+        """)
+        result = cursor.fetchone()
+        metrics['pending_tasks'] = result['count'] if USE_POSTGRES else result[0]
+        
+        # Tasks in progress - kept for backward compatibility
+        cursor.execute("""
+            SELECT COUNT(*) as count FROM items 
+            WHERE item_type = 'TASK' AND status = 'IN_PROGRESS'
+        """)
+        result = cursor.fetchone()
+        metrics['tasks_in_progress'] = result['count'] if USE_POSTGRES else result[0]
+        
+        # Pending purchases - kept for backward compatibility
+        cursor.execute("""
+            SELECT COUNT(*) as count FROM items 
+            WHERE item_type = 'PURCHASE' AND status != 'COMPLETED' AND status != 'ARCHIVED'
+        """)
+        result = cursor.fetchone()
+        metrics['pending_purchases'] = result['count'] if USE_POSTGRES else result[0]
+        
+        # Pending groceries - kept for backward compatibility
+        cursor.execute("""
+            SELECT COUNT(*) as count FROM items 
+            WHERE item_type = 'GROCERY' AND status = 'TODO'
+        """)
+        result = cursor.fetchone()
+        metrics['pending_groceries'] = result['count'] if USE_POSTGRES else result[0]
+        
+        # Completed this month
+        first_day_of_month = datetime.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0).isoformat()
+        
+        if USE_POSTGRES:
+            cursor.execute("""
+                SELECT COUNT(*) as count FROM items 
+                WHERE status = 'COMPLETED' AND completed_at >= %s
+            """, (first_day_of_month,))
+        else:
+            cursor.execute("""
+                SELECT COUNT(*) as count FROM items 
+                WHERE status = 'COMPLETED' AND completed_at >= ?
+            """, (first_day_of_month,))
+        
+        result = cursor.fetchone()
+        metrics['completed_this_month'] = result['count'] if USE_POSTGRES else result[0]
+        
+        if USE_POSTGRES:
+            cursor.close()
+            connection.close()
     
-    result = cursor.fetchone()
-    metrics['completed_this_month'] = result['count'] if USE_POSTGRES else result[0]
-    
-    if USE_POSTGRES:
-        cursor.close()
-        connection.close()
+    except Exception as e:
+        print(f"Error in get_dashboard_metrics: {e}")
+        # Return metrics with default values if there's an error
     
     return metrics
 
