@@ -22,6 +22,7 @@ A shared home management application for tracking tasks, purchases, and grocerie
 ## Mobile Installation
 
 On your phone:
+
 - **iPhone**: Safari → Share → Add to Home Screen
 - **Android**: Chrome → Menu (⋮) → Install app
 

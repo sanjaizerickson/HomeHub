@@ -21,61 +21,81 @@ st.markdown(get_page_style('tasks'), unsafe_allow_html=True)
 # Custom CSS for enhanced UI
 st.markdown("""
 <style>
-    /* Task Card Styling */
+    /* Task Card Styling - Compact for Mobile */
     .task-card {
         background: rgba(255, 255, 255, 0.05);
         border-left: 4px solid #667eea;
-        padding: 1.5rem;
-        border-radius: 12px;
-        margin-bottom: 1rem;
+        padding: 0.75rem;
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
     
-    /* Priority Badges */
+    /* Horizontal Progress Bar */
+    .progress-bar-horizontal {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        margin: 0.5rem 0;
+    }
+    
+    .progress-dot {
+        font-size: 1.5rem;
+        opacity: 0.3;
+        transition: all 0.3s;
+    }
+    
+    .progress-dot.active {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+    
+    .progress-dot.completed {
+        opacity: 0.7;
+    }
+    
+    .progress-line {
+        flex: 1;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.1);
+        margin: 0 0.5rem;
+        position: relative;
+    }
+    
+    .progress-line.active {
+        background: #667eea;
+    }
+    
+    /* Priority Badges - Compact */
     .priority-badge {
         display: inline-block;
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.8rem;
+        padding: 0.15rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.7rem;
         font-weight: 600;
-        margin-right: 0.5rem;
+        margin-right: 0.25rem;
     }
     .priority-high { background: #fee2e2; color: #991b1b; }
     .priority-medium { background: #fef3c7; color: #92400e; }
     .priority-low { background: #d1fae5; color: #065f46; }
     
-    /* Status Badges */
-    .status-badge {
-        display: inline-block;
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 600;
-    }
-    .status-todo { background: #f3f4f6; color: #374151; }
-    .status-progress { background: #dbeafe; color: #1e40af; }
-    .status-done { background: #d1fae5; color: #065f46; }
-    
-    /* Assignee Badge */
-    .assignee-badge {
-        background: #e0e7ff;
-        color: #3730a3;
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 500;
+    /* Metadata - Compact */
+    .task-meta {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        margin-top: 0.25rem;
     }
     
-    /* Quick action buttons */
-    .stButton > button {
-        border-radius: 8px !important;
-        font-weight: 500 !important;
-        transition: all 0.2s !important;
-    }
-    
-    .stButton > button:hover {
-        transform: translateY(-1px) !important;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.15) !important;
+    /* Mobile Optimizations */
+    @media (max-width: 768px) {
+        .task-card {
+            padding: 0.5rem;
+        }
+        .stButton > button {
+            padding: 0.4rem 0.8rem !important;
+            font-size: 0.85rem !important;
+        }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -176,57 +196,53 @@ else:
             priority_class = f"priority-{task['priority'].lower()}"
             priority_emoji = {"High": "🔴", "Medium": "🟡", "Low": "🟢"}.get(task['priority'], "")
             
-            # Status badge HTML
-            status_class = {
-                'TODO': 'status-todo',
-                'IN_PROGRESS': 'status-progress',
-                'COMPLETED': 'status-done'
-            }.get(task['status'], 'status-todo')
+            # Status progress stages
+            status_stages = ['TODO', 'IN_PROGRESS', 'COMPLETED']
+            status_emojis = ['📝', '⚡', '✅']
+            current_stage = task['status']
+            current_index = status_stages.index(current_stage) if current_stage in status_stages else 0
             
-            status_emoji = {
-                'TODO': '📝',
-                'IN_PROGRESS': '⚡',
-                'COMPLETED': '✅'
-            }.get(task['status'], '📝')
+            # Build horizontal progress bar
+            progress_html = '<div class="progress-bar-horizontal">'
+            for i, (stage, emoji) in enumerate(zip(status_stages, status_emojis)):
+                # Determine dot class
+                dot_class = 'progress-dot'
+                if i < current_index:
+                    dot_class += ' completed'
+                elif i == current_index:
+                    dot_class += ' active'
+                
+                progress_html += f'<span class="{dot_class}">{emoji}</span>'
+                
+                # Add connecting line (except after last dot)
+                if i < len(status_stages) - 1:
+                    line_class = 'progress-line'
+                    if i < current_index:
+                        line_class += ' active'
+                    progress_html += f'<div class="{line_class}"></div>'
+            
+            progress_html += '</div>'
             
             # Card container
             with st.container():
                 st.markdown(f"""
                 <div class="task-card">
-                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
-                        <div>
-                            <h3 style="margin: 0; color: #667eea;">{task['title']}</h3>
-                        </div>
-                        <div>
-                            <span class="priority-badge {priority_class}">{priority_emoji} {task['priority']}</span>
-                        </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                        <h4 style="margin: 0; color: #667eea; font-size: 1rem;">{task['title']}</h4>
+                        <span class="priority-badge {priority_class}">{priority_emoji}</span>
                     </div>
-                    <div style="margin-bottom: 0.75rem;">
-                        <span class="status-badge {status_class}">{status_emoji} {task['status'].replace('_', ' ')}</span>
-                        <span class="assignee-badge">👤 {task['assigned_to']}</span>
+                    {progress_html}
+                    <div class="task-meta">
+                        👤 {task['assigned_to']} • 📅 {task['created_at'].strftime("%b %d") if not isinstance(task['created_at'], str) else datetime.fromisoformat(task['created_at']).strftime("%b %d")}
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # Task details and actions in same row
-                col1, col2 = st.columns([3, 1])
+                # Actions row - compact
+                col1, col2, col3 = st.columns([2, 2, 1])
                 
                 with col1:
-                    # Date info
-                    created_at = task['created_at']
-                    if isinstance(created_at, str):
-                        created = datetime.fromisoformat(created_at).strftime("%b %d, %I:%M %p")
-                    else:
-                        created = created_at.strftime("%b %d, %I:%M %p")
-                    
-                    st.caption(f"📅 Created: {created}")
-                    
-                    if task['notes']:
-                        with st.expander("📝 View Notes"):
-                            st.write(task['notes'])
-                
-                with col2:
-                    # Quick status cycle button
+                    # Quick action button
                     next_status = {
                         'TODO': ('IN_PROGRESS', '⚡ Start'),
                         'IN_PROGRESS': ('COMPLETED', '✅ Done'),
@@ -237,10 +253,28 @@ else:
                         update_item_status(task['id'], next_status[0])
                         st.rerun()
                 
-                # Delete button
-                if st.button("🗑️ Delete", key=f"delete_{task['id']}", type="secondary"):
-                    delete_item(task['id'])
-                    st.rerun()
+                with col2:
+                    # Change status dropdown (collapsed)
+                    with st.expander("⚙️ Change Status", expanded=False):
+                        new_status = st.selectbox("Select Status", 
+                            ['TODO', 'IN_PROGRESS', 'COMPLETED'],
+                            index=status_stages.index(current_stage),
+                            key=f"status_{task['id']}",
+                            label_visibility="collapsed")
+                        if st.button("Update", key=f"update_status_{task['id']}", use_container_width=True):
+                            update_item_status(task['id'], new_status)
+                            st.rerun()
+                
+                with col3:
+                    # Delete button
+                    if st.button("🗑️", key=f"delete_{task['id']}", use_container_width=True):
+                        delete_item(task['id'])
+                        st.rerun()
+                
+                # Notes if available
+                if task['notes']:
+                    with st.expander("📝 Notes", expanded=False):
+                        st.caption(task['notes'])
                 
                 st.markdown("<br>", unsafe_allow_html=True)
     

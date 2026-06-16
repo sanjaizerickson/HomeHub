@@ -21,102 +21,81 @@ st.markdown(get_page_style('shopping'), unsafe_allow_html=True)
 # Custom CSS for enhanced UI
 st.markdown("""
 <style>
-    /* Shopping Card Styling */
+    /* Shopping Card Styling - Compact for Mobile */
     .purchase-card {
         background: rgba(255, 255, 255, 0.05);
         border-left: 4px solid #48bb78;
-        padding: 1.5rem;
-        border-radius: 12px;
-        margin-bottom: 1rem;
+        padding: 0.75rem;
+        border-radius: 8px;
+        margin-bottom: 0.75rem;
         box-shadow: 0 2px 8px rgba(0,0,0,0.1);
     }
     
-    /* Progress Stepper */
-    .progress-stepper {
+    /* Horizontal Progress Bar */
+    .progress-bar-horizontal {
         display: flex;
         align-items: center;
-        margin: 1rem 0;
-        padding: 1rem;
-        background: rgba(255, 255, 255, 0.02);
-        border-radius: 8px;
+        justify-content: space-between;
+        padding: 0.5rem 0;
+        margin: 0.5rem 0;
     }
     
-    .stepper-step {
+    .progress-dot {
+        font-size: 1.5rem;
+        opacity: 0.3;
+        transition: all 0.3s;
+    }
+    
+    .progress-dot.active {
+        opacity: 1;
+        transform: scale(1.2);
+    }
+    
+    .progress-dot.completed {
+        opacity: 0.7;
+    }
+    
+    .progress-line {
         flex: 1;
-        text-align: center;
+        height: 2px;
+        background: rgba(255, 255, 255, 0.1);
+        margin: 0 0.5rem;
         position: relative;
     }
     
-    .stepper-circle {
-        width: 40px;
-        height: 40px;
-        border-radius: 50%;
-        background: #374151;
-        color: white;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 1.2rem;
-        margin-bottom: 0.5rem;
-    }
-    
-    .stepper-circle.active {
+    .progress-line.active {
         background: #48bb78;
-        box-shadow: 0 0 0 4px rgba(72, 187, 120, 0.2);
     }
     
-    .stepper-circle.completed {
-        background: #10b981;
-    }
-    
-    .stepper-label {
-        font-size: 0.7rem;
-        color: #9ca3af;
-    }
-    
-    .stepper-label.active {
-        color: #48bb78;
-        font-weight: 600;
-    }
-    
-    /* Priority Badges */
+    /* Priority Badges - Compact */
     .priority-badge {
         display: inline-block;
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.8rem;
+        padding: 0.15rem 0.5rem;
+        border-radius: 12px;
+        font-size: 0.7rem;
         font-weight: 600;
-        margin-right: 0.5rem;
+        margin-right: 0.25rem;
     }
     .priority-high { background: #fee2e2; color: #991b1b; }
     .priority-medium { background: #fef3c7; color: #92400e; }
     .priority-low { background: #d1fae5; color: #065f46; }
     
-    /* Budget Badge */
-    .budget-badge {
-        background: #dbeafe;
-        color: #1e40af;
-        padding: 0.25rem 0.75rem;
-        border-radius: 20px;
-        font-size: 0.8rem;
-        font-weight: 600;
+    /* Metadata - Compact */
+    .purchase-meta {
+        font-size: 0.75rem;
+        color: #9ca3af;
+        margin-top: 0.25rem;
     }
     
-    /* Link Preview */
-    .link-preview {
-        display: inline-block;
-        padding: 0.5rem 1rem;
-        background: rgba(99, 102, 241, 0.1);
-        border: 1px solid rgba(99, 102, 241, 0.3);
-        border-radius: 8px;
-        color: #818cf8;
-        text-decoration: none;
-        transition: all 0.2s;
-    }
-    
-    .link-preview:hover {
-        background: rgba(99, 102, 241, 0.2);
-        border-color: rgba(99, 102, 241, 0.5);
+    /* Mobile Optimizations */
+    @media (max-width: 768px) {
+        .purchase-card {
+            padding: 0.5rem;
+        }
+        .stButton > button {
+            padding: 0.4rem 0.8rem !important;
+            font-size: 0.85rem !important;
+        }
     }
 </style>
 """, unsafe_allow_html=True)
@@ -237,96 +216,83 @@ else:
                 current_index = 0
                 current_stage = status_stages[0]
             
+            # Build horizontal progress bar
+            progress_html = '<div class="progress-bar-horizontal">'
+            for i, stage in enumerate(status_stages):
+                # Determine dot class
+                dot_class = 'progress-dot'
+                if i < current_index:
+                    dot_class += ' completed'
+                elif i == current_index:
+                    dot_class += ' active'
+                
+                progress_html += f'<span class="{dot_class}">{stage_emojis[stage]}</span>'
+                
+                # Add connecting line (except after last dot)
+                if i < len(status_stages) - 1:
+                    line_class = 'progress-line'
+                    if i < current_index:
+                        line_class += ' active'
+                    progress_html += f'<div class="{line_class}"></div>'
+            
+            progress_html += '</div>'
+            
             # Card container
             with st.container():
                 st.markdown(f"""
                 <div class="purchase-card">
-                    <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 0.5rem;">
-                        <div>
-                            <h3 style="margin: 0; color: #48bb78;">{purchase['title']}</h3>
-                        </div>
-                        <div>
-                            <span class="priority-badge {priority_class}">{priority_emoji} {purchase['priority']}</span>
-                        </div>
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.25rem;">
+                        <h4 style="margin: 0; color: #48bb78; font-size: 1rem;">{purchase['title']}</h4>
+                        <span class="priority-badge {priority_class}">{priority_emoji}</span>
+                    </div>
+                    {progress_html}
+                    <div class="purchase-meta">
+                        📅 {purchase['created_at'].strftime("%b %d") if not isinstance(purchase['created_at'], str) else datetime.fromisoformat(purchase['created_at']).strftime("%b %d")}
+                        {' • 🔗 <a href="' + purchase['purchase_link'] + '" target="_blank" style="color: #48bb78;">Link</a>' if purchase['purchase_link'] else ''}
                     </div>
                 </div>
                 """, unsafe_allow_html=True)
                 
-                # Progress Stepper
-                st.markdown('<div class="progress-stepper">', unsafe_allow_html=True)
-                cols = st.columns(4)
-                for idx, (stage, col) in enumerate(zip(status_stages, cols)):
-                    with col:
-                        circle_class = "completed" if idx < current_index else ("active" if idx == current_index else "")
-                        label_class = "active" if idx == current_index else ""
-                        st.markdown(f"""
-                        <div class="stepper-step">
-                            <div class="stepper-circle {circle_class}">{stage_emojis[stage]}</div>
-                            <div class="stepper-label {label_class}">{stage_labels[stage]}</div>
-                        </div>
-                        """, unsafe_allow_html=True)
-                st.markdown('</div>', unsafe_allow_html=True)
-                
-                # Details row
-                col1, col2 = st.columns([3, 1])
+                # Actions row - compact
+                col1, col2, col3 = st.columns([2, 2, 1])
                 
                 with col1:
-                    # Purchase link with preview
-                    if purchase['purchase_link']:
-                        domain = "Amazon" if "amazon" in purchase['purchase_link'].lower() else ("Flipkart" if "flipkart" in purchase['purchase_link'].lower() else "Link")
-                        st.markdown(f'<a href="{purchase["purchase_link"]}" target="_blank" class="link-preview">🔗 View on {domain}</a>', unsafe_allow_html=True)
-                    
-                    # Date info
-                    created_at = purchase['created_at']
-                    if isinstance(created_at, str):
-                        created = datetime.fromisoformat(created_at).strftime("%b %d, %I:%M %p")
-                    else:
-                        created = created_at.strftime("%b %d, %I:%M %p")
-                    st.caption(f"📅 Added: {created}")
-                    
-                    # Notes
-                    if purchase['notes']:
-                        with st.expander("📝 View Notes"):
-                            st.write(purchase['notes'])
-                
-                with col2:
                     # Smart Next Stage button
                     if current_index < len(status_stages) - 1:
                         next_stage = status_stages[current_index + 1]
                         next_emoji = stage_emojis[next_stage]
                         next_label = stage_labels[next_stage]
-                        if st.button(f"{next_emoji} → {next_label}", key=f"next_{purchase['id']}", use_container_width=True, type="primary"):
+                        if st.button(f"{next_emoji} {next_label}", key=f"next_{purchase['id']}", use_container_width=True, type="primary"):
                             update_item_status(purchase['id'], next_stage)
                             st.rerun()
-                
-                # All status buttons (compact)
-                with st.expander("⚙️ Change Status"):
-                    col1, col2, col3, col4 = st.columns(4)
-                    
-                    with col1:
-                        if st.button("🔍 Research", key=f"research_{purchase['id']}", disabled=current_stage == 'RESEARCH', use_container_width=True):
+                    else:
+                        if st.button("🔄 Reopen", key=f"reopen_{purchase['id']}", use_container_width=True, type="primary"):
                             update_item_status(purchase['id'], 'RESEARCH')
                             st.rerun()
-                    
-                    with col2:
-                        if st.button("💭 Wishlist", key=f"wishlist_{purchase['id']}", disabled=current_stage == 'WISHLIST', use_container_width=True):
-                            update_item_status(purchase['id'], 'WISHLIST')
-                            st.rerun()
-                    
-                    with col3:
-                        if st.button("📦 Ordered", key=f"ordered_{purchase['id']}", disabled=current_stage == 'ORDERED', use_container_width=True):
-                            update_item_status(purchase['id'], 'ORDERED')
-                            st.rerun()
-                    
-                    with col4:
-                        if st.button("✅ Delivered", key=f"delivered_{purchase['id']}", disabled=current_stage == 'DELIVERED', use_container_width=True):
-                            update_item_status(purchase['id'], 'DELIVERED')
+                
+                with col2:
+                    # Change status dropdown (collapsed)
+                    with st.expander("⚙️ Change Status", expanded=False):
+                        new_status = st.selectbox("Jump to Stage", 
+                            status_stages,
+                            index=current_index,
+                            key=f"status_{purchase['id']}",
+                            format_func=lambda x: f"{stage_emojis[x]} {stage_labels[x]}",
+                            label_visibility="collapsed")
+                        if st.button("Update", key=f"update_status_{purchase['id']}", use_container_width=True):
+                            update_item_status(purchase['id'], new_status)
                             st.rerun()
                 
-                # Delete button
-                if st.button("🗑️ Delete", key=f"delete_{purchase['id']}", type="secondary"):
-                    delete_item(purchase['id'])
-                    st.rerun()
+                with col3:
+                    # Delete button
+                    if st.button("🗑️", key=f"delete_{purchase['id']}", use_container_width=True):
+                        delete_item(purchase['id'])
+                        st.rerun()
+                
+                # Notes if available
+                if purchase['notes']:
+                    with st.expander("📝 Notes", expanded=False):
+                        st.caption(purchase['notes'])
                 
                 st.markdown("<br>", unsafe_allow_html=True)
     

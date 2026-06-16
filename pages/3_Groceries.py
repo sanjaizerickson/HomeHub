@@ -99,28 +99,28 @@ st.markdown("""
 
 render_page_header("Groceries", "🥗", "groceries")
 
-# Add Grocery Form
-st.markdown("### ➕ Add Grocery Item")
-with st.form("add_grocery_form", clear_on_submit=True):
-    col1, col2 = st.columns([4, 1])
-    
-    with col1:
-        grocery_name = st.text_input("Grocery Item *", placeholder="e.g., Milk, Bread, Eggs", label_visibility="collapsed")
-    
-    with col2:
-        submitted = st.form_submit_button("✅ Add", use_container_width=True, type="primary")
-    
-    if submitted:
-        if grocery_name.strip():
-            create_item(
-                title=grocery_name,
-                item_type="GROCERY",
-                status="TODO"
-            )
-            st.success(f"✅ '{grocery_name}' added to list!")
-            st.rerun()
-        else:
-            st.error("Item name is required!")
+# Add Grocery Form - Collapsed by default
+with st.expander("➕ Add Grocery Item", expanded=False):
+    with st.form("add_grocery_form", clear_on_submit=True):
+        col1, col2 = st.columns([4, 1])
+        
+        with col1:
+            grocery_name = st.text_input("Grocery Item *", placeholder="e.g., Milk, Bread, Eggs", label_visibility="collapsed")
+        
+        with col2:
+            submitted = st.form_submit_button("✅ Add", use_container_width=True, type="primary")
+        
+        if submitted:
+            if grocery_name.strip():
+                create_item(
+                    title=grocery_name,
+                    item_type="GROCERY",
+                    status="TODO"
+                )
+                st.success(f"✅ '{grocery_name}' added to list!")
+                st.rerun()
+            else:
+                st.error("Item name is required!")
 
 st.divider()
 

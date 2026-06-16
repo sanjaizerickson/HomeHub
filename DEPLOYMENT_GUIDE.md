@@ -11,7 +11,8 @@ git add .
 git commit -m "Initial commit - Home Hub V1"
 ```
 
-Create a new repository on GitHub (https://github.com/new):
+Create a new repository on GitHub (<https://github.com/new>):
+
 - Name: `homehub`
 - Make it **Private** (recommended for security)
 
@@ -23,7 +24,7 @@ git push -u origin main
 
 ### 2. Deploy to Streamlit Cloud
 
-1. Go to https://share.streamlit.io/
+1. Go to <https://share.streamlit.io/>
 2. Click **"New app"**
 3. Connect your GitHub account
 4. Select your repository: `YOUR_USERNAME/homehub`
@@ -47,6 +48,7 @@ git push -u origin main
 ### 5. Share with Pradhiksha
 
 Send her:
+
 - **URL**: `https://YOUR_APP_NAME.streamlit.app`
 - **Username**: `pradhiksha`
 - **Password**: `603103`
@@ -73,6 +75,7 @@ Send her:
 ### Updating the App
 
 After making changes:
+
 ```bash
 git add .
 git commit -m "Your update message"
@@ -84,6 +87,7 @@ Streamlit Cloud auto-deploys within 1-2 minutes!
 ## 📱 Mobile Usage
 
 After deployment, both of you can:
+
 1. Open the URL on your phones
 2. Add to home screen (see PWA_INSTALL_GUIDE.md)
 3. Use like a native app!
@@ -91,25 +95,30 @@ After deployment, both of you can:
 ## 🆘 Troubleshooting
 
 **App won't start:**
+
 - Check logs in Streamlit Cloud dashboard
 - Verify `requirements.txt` is correct
 
 **Data disappeared:**
+
 - Expected with SQLite on cloud
 - Data resets when app restarts
 - Consider upgrading to PostgreSQL
 
 **Login not remembering:**
+
 - Clear browser cache and try again
 - Make sure cookies are enabled
 
 **Can't access from outside home:**
+
 - Should work anywhere with internet
 - Check if URL is correct
 
 ## 🔄 Future Upgrades
 
 When ready for production database:
+
 1. Create free Supabase account
 2. Set up PostgreSQL database
 3. Update `database.py` to use PostgreSQL
