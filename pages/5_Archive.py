@@ -1,7 +1,7 @@
 import streamlit as st
 from database import get_archived_items, delete_item, update_item_status
 from datetime import datetime
-from theme import render_page_header, add_pwa_support
+from theme import render_page_header, add_pwa_support, get_page_style
 from auth import require_auth, render_logout_button
 
 st.set_page_config(page_title="Home Hub - Archive", page_icon="📦", layout="wide")
@@ -14,6 +14,9 @@ require_auth()
 
 # Render logout button in sidebar
 render_logout_button()
+
+# Apply theme with sidebar styling
+st.markdown(get_page_style('archive'), unsafe_allow_html=True)
 
 render_page_header("Archive", "📦", "archive")
 st.write("**View completed and archived items**")

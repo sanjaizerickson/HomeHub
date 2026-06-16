@@ -1,7 +1,7 @@
 import streamlit as st
 from database import get_dashboard_metrics, get_recent_completed
 from datetime import datetime
-from theme import get_page_style, add_pwa_support
+from theme import get_page_style, add_pwa_support, apply_theme_switcher
 from auth import require_auth, render_logout_button
 
 st.set_page_config(
@@ -20,6 +20,9 @@ require_auth()
 # Render logout button in sidebar
 render_logout_button()
 
+# Add theme switcher
+apply_theme_switcher()
+
 # Apply theme
 st.markdown(get_page_style('home'), unsafe_allow_html=True)
 
@@ -34,23 +37,36 @@ st.markdown("""
 # Get metrics
 metrics = get_dashboard_metrics()
 
-# Display metrics in columns
-col1, col2, col3, col4, col5 = st.columns(5)
+# Display metrics in columns - New Format: Completed/Total with percentage
+col1, col2, col3, col4 = st.columns(4)
 
 with col1:
-    st.metric("📋 Pending Tasks", metrics['pending_tasks'])
+    st.metric(
+        "📋 Tasks", 
+        f"{metrics['tasks_completed']}/{metrics['tasks_total']} ✅",
+        delta=f"{(metrics['tasks_completed']/metrics['tasks_total']*100):.0f}%" if metrics['tasks_total'] > 0 else "0%"
+    )
 
 with col2:
-    st.metric("⚡ In Progress", metrics['tasks_in_progress'])
+    st.metric(
+        "🛒 Shopping", 
+        f"{metrics['shopping_completed']}/{metrics['shopping_total']} ✅",
+        delta=f"{(metrics['shopping_completed']/metrics['shopping_total']*100):.0f}%" if metrics['shopping_total'] > 0 else "0%"
+    )
 
 with col3:
-    st.metric("🛒 Purchases", metrics['pending_purchases'])
+    st.metric(
+        "🥗 Groceries", 
+        f"{metrics['groceries_completed']}/{metrics['groceries_total']} ✅",
+        delta=f"{(metrics['groceries_completed']/metrics['groceries_total']*100):.0f}%" if metrics['groceries_total'] > 0 else "0%"
+    )
 
 with col4:
-    st.metric("🥗 Groceries", metrics['pending_groceries'])
-
-with col5:
-    st.metric("✅ Completed", metrics['completed_this_month'])
+    st.metric(
+        "🎯 Overall", 
+        f"{metrics['overall_completion']:.0f}%",
+        delta="Completion Rate"
+    )
 
 st.divider()
 

@@ -33,7 +33,7 @@ COLORS = {
         'light': '#bee3f8',
         'text': '#ffffff'
     },
-    'purchases': {
+    'shopping': {
         'primary': '#48bb78',
         'secondary': '#38a169',
         'light': '#c6f6d5',
@@ -135,6 +135,59 @@ def get_page_style(page_name, mobile_optimized=True):
             color: {color['text']};
             text-align: center;
             box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }}
+        
+        /* Highlight main pages with background color (Tasks, Shopping, Groceries) */
+        [data-testid="stSidebarNav"] ul li:nth-child(3) a,
+        [data-testid="stSidebarNav"] ul li:nth-child(4) a,
+        [data-testid="stSidebarNav"] ul li:nth-child(5) a,
+        [data-testid="stSidebarNav"] a[href*="1_Tasks"],
+        [data-testid="stSidebarNav"] a[href*="2_Shopping"],
+        [data-testid="stSidebarNav"] a[href*="3_Groceries"] {{
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.2) 0%, rgba(102, 126, 234, 0.08) 100%) !important;
+            border-left: 4px solid rgba(102, 126, 234, 0.9) !important;
+            border-radius: 8px !important;
+            padding: 0.75rem 1rem !important;
+            margin: 0.25rem 0.5rem !important;
+            font-weight: 600 !important;
+            font-size: 1.05rem !important;
+            transition: all 0.2s ease !important;
+        }}
+        
+        [data-testid="stSidebarNav"] ul li:nth-child(3) a:hover,
+        [data-testid="stSidebarNav"] ul li:nth-child(4) a:hover,
+        [data-testid="stSidebarNav"] ul li:nth-child(5) a:hover,
+        [data-testid="stSidebarNav"] a[href*="1_Tasks"]:hover,
+        [data-testid="stSidebarNav"] a[href*="2_Shopping"]:hover,
+        [data-testid="stSidebarNav"] a[href*="3_Groceries"]:hover {{
+            background: linear-gradient(90deg, rgba(102, 126, 234, 0.3) 0%, rgba(102, 126, 234, 0.15) 100%) !important;
+            transform: translateX(3px) !important;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3) !important;
+        }}
+        
+        /* Secondary pages (Login, Home, Archive) - plain and dimmed */
+        [data-testid="stSidebarNav"] ul li:nth-child(1) a,
+        [data-testid="stSidebarNav"] ul li:nth-child(2) a,
+        [data-testid="stSidebarNav"] ul li:nth-child(6) a,
+        [data-testid="stSidebarNav"] a[href*="Login"],
+        [data-testid="stSidebarNav"] a[href*="0_Home"],
+        [data-testid="stSidebarNav"] a[href*="5_Archive"] {{
+            opacity: 0.55 !important;
+            font-size: 0.9rem !important;
+            padding: 0.5rem 1rem !important;
+            margin: 0.1rem 0.5rem !important;
+            font-weight: 400 !important;
+        }}
+        
+        [data-testid="stSidebarNav"] ul li:nth-child(1) a:hover,
+        [data-testid="stSidebarNav"] ul li:nth-child(2) a:hover,
+        [data-testid="stSidebarNav"] ul li:nth-child(6) a:hover,
+        [data-testid="stSidebarNav"] a[href*="Login"]:hover,
+        [data-testid="stSidebarNav"] a[href*="0_Home"]:hover,
+        [data-testid="stSidebarNav"] a[href*="5_Archive"]:hover {{
+            opacity: 0.85 !important;
+            background: rgba(255, 255, 255, 0.05) !important;
+            border-radius: 8px !important;
         }}
         
         /* Mobile optimizations */
@@ -287,4 +340,10 @@ def add_pwa_support():
             }
         </script>
     """)
+
+
+def render_bottom_navigation(current_page='tasks'):
+    """Streamlit doesn't support truly fixed elements, so this is disabled.
+    Navigation remains in sidebar."""
+    pass  # Disabled - Streamlit cannot render fixed bottom nav that stays during scroll
 

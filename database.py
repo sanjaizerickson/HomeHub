@@ -37,11 +37,14 @@ else:
     # SQLite setup (for local development)
     import sqlite3
     
-    conn = sqlite3.connect("data.db", check_same_thread=False)
+    _sqlite_conn = None
     
     def get_connection():
         """Get SQLite connection"""
-        return conn
+        global _sqlite_conn
+        if _sqlite_conn is None:
+            _sqlite_conn = sqlite3.connect("data.db", check_same_thread=False)
+        return _sqlite_conn
 
 
 def migrate_db():
@@ -49,6 +52,7 @@ def migrate_db():
     if USE_POSTGRES:
         return  # PostgreSQL migrations handled separately
     
+    conn = get_connection()
     cursor = conn.cursor()
     # Get existing columns
     cursor.execute("PRAGMA table_info(items)")
@@ -106,6 +110,7 @@ def init_db():
             conn.close()
         else:
             # SQLite initialization
+            conn = get_connection()
             cursor = conn.cursor()
             cursor.execute("""
             CREATE TABLE IF NOT EXISTS items(
@@ -386,7 +391,57 @@ def get_dashboard_metrics():
     connection = get_connection()
     cursor = connection.cursor()
     
-    # Pending tasks (TODO + IN_PROGRESS)
+    # TASKS - Completed vs Total
+    cursor.execute("""
+        SELECT COUNT(*) as count FROM items 
+        WHERE item_type = 'TASK' AND status = 'COMPLETED'
+    """)
+    result = cursor.fetchone()
+    metrics['tasks_completed'] = result['count'] if USE_POSTGRES else result[0]
+    
+    cursor.execute("""
+        SELECT COUNT(*) as count FROM items 
+        WHERE item_type = 'TASK'
+    """)
+    result = cursor.fetchone()
+    metrics['tasks_total'] = result['count'] if USE_POSTGRES else result[0]
+    
+    # SHOPPING - Delivered vs Total
+    cursor.execute("""
+        SELECT COUNT(*) as count FROM items 
+        WHERE item_type = 'PURCHASE' AND (status = 'DELIVERED' OR status = 'COMPLETED')
+    """)
+    result = cursor.fetchone()
+    metrics['shopping_completed'] = result['count'] if USE_POSTGRES else result[0]
+    
+    cursor.execute("""
+        SELECT COUNT(*) as count FROM items 
+        WHERE item_type = 'PURCHASE'
+    """)
+    result = cursor.fetchone()
+    metrics['shopping_total'] = result['count'] if USE_POSTGRES else result[0]
+    
+    # GROCERIES - Completed vs Total
+    cursor.execute("""
+        SELECT COUNT(*) as count FROM items 
+        WHERE item_type = 'GROCERY' AND status = 'COMPLETED'
+    """)
+    result = cursor.fetchone()
+    metrics['groceries_completed'] = result['count'] if USE_POSTGRES else result[0]
+    
+    cursor.execute("""
+        SELECT COUNT(*) as count FROM items 
+        WHERE item_type = 'GROCERY'
+    """)
+    result = cursor.fetchone()
+    metrics['groceries_total'] = result['count'] if USE_POSTGRES else result[0]
+    
+    # Calculate overall completion percentage
+    total_items = metrics['tasks_total'] + metrics['shopping_total'] + metrics['groceries_total']
+    completed_items = metrics['tasks_completed'] + metrics['shopping_completed'] + metrics['groceries_completed']
+    metrics['overall_completion'] = (completed_items / total_items * 100) if total_items > 0 else 0
+    
+    # Pending tasks (TODO + IN_PROGRESS) - kept for backward compatibility
     cursor.execute("""
         SELECT COUNT(*) as count FROM items 
         WHERE item_type = 'TASK' AND status IN ('TODO', 'IN_PROGRESS')
@@ -394,7 +449,7 @@ def get_dashboard_metrics():
     result = cursor.fetchone()
     metrics['pending_tasks'] = result['count'] if USE_POSTGRES else result[0]
     
-    # Tasks in progress
+    # Tasks in progress - kept for backward compatibility
     cursor.execute("""
         SELECT COUNT(*) as count FROM items 
         WHERE item_type = 'TASK' AND status = 'IN_PROGRESS'
@@ -402,7 +457,7 @@ def get_dashboard_metrics():
     result = cursor.fetchone()
     metrics['tasks_in_progress'] = result['count'] if USE_POSTGRES else result[0]
     
-    # Pending purchases
+    # Pending purchases - kept for backward compatibility
     cursor.execute("""
         SELECT COUNT(*) as count FROM items 
         WHERE item_type = 'PURCHASE' AND status != 'COMPLETED' AND status != 'ARCHIVED'
@@ -410,7 +465,7 @@ def get_dashboard_metrics():
     result = cursor.fetchone()
     metrics['pending_purchases'] = result['count'] if USE_POSTGRES else result[0]
     
-    # Pending groceries
+    # Pending groceries - kept for backward compatibility
     cursor.execute("""
         SELECT COUNT(*) as count FROM items 
         WHERE item_type = 'GROCERY' AND status = 'TODO'
