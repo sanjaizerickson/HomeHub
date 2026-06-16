@@ -238,6 +238,11 @@ else:
             
             progress_html = '<div class="progress-bar-horizontal">' + ''.join(progress_dots) + '</div>'
             
+            # Build metadata line
+            created_date = purchase['created_at'].strftime("%b %d") if not isinstance(purchase['created_at'], str) else datetime.fromisoformat(purchase['created_at']).strftime("%b %d")
+            link_html = f' • 🔗 <a href="{purchase["purchase_link"]}" target="_blank" style="color: #48bb78;">Link</a>' if purchase['purchase_link'] else ''
+            meta_html = f'📅 {created_date}{link_html}'
+            
             # Card container
             with st.container():
                 # Build card HTML with progress bar inline
@@ -249,8 +254,7 @@ else:
                     </div>
                     {progress_html}
                     <div class="purchase-meta">
-                        📅 {purchase['created_at'].strftime("%b %d") if not isinstance(purchase['created_at'], str) else datetime.fromisoformat(purchase['created_at']).strftime("%b %d")}
-                        {' • 🔗 <a href="' + purchase['purchase_link'] + '" target="_blank" style="color: #48bb78;">Link</a>' if purchase['purchase_link'] else ''}
+                        {meta_html}
                     </div>
                 </div>
                 """
